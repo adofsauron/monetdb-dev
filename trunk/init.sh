@@ -1,10 +1,10 @@
-#!/bin
+#!/bin/bash
 
 
-# cat ./.monetdb > ~/.monetdb
+cat ./.monetdb > ~/.monetdb
 
-rm ./dbfarm  -rf
+rm /dbfarm  -rf
 
-monetdbd create ./dbfarm
+monetdbd create /dbfarm
 
-monetdbd get all ./dbfarm
+monetdbd get all /dbfarm

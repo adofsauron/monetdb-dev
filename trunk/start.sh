@@ -1,3 +1,3 @@
 #!/bin/bash
 
-monetdbd start ./dbfarm
+monetdbd start /dbfarm

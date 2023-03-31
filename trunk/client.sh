@@ -2,3 +2,4 @@
 
 mclient -dmytest
 
+mclient -dSF-10
