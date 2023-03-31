@@ -1,0 +1,49 @@
+--!/usr/bin/env bash
+
+-- This Source Code Form is subject to the terms of the Mozilla Public
+-- License, v. 2.0.  If a copy of the MPL was not distributed with this
+-- file, You can obtain one at http://mozilla.org/MPL/2.0/.
+--
+-- Copyright 2017-2018 MonetDB Solutions B.V.
+
+-- Sccsid:     @(#)dss.ri	2.1.8.1
+-- TPCD Benchmark Version 8.0
+
+START TRANSACTION;
+
+--ALTER TABLE REGION DROP PRIMARY KEY;
+--ALTER TABLE NATION DROP PRIMARY KEY;
+--ALTER TABLE PART DROP PRIMARY KEY;
+--ALTER TABLE SUPPLIER DROP PRIMARY KEY;
+--ALTER TABLE PARTSUPP DROP PRIMARY KEY;
+--ALTER TABLE ORDERS DROP PRIMARY KEY;
+--ALTER TABLE LINEITEM DROP PRIMARY KEY;
+--ALTER TABLE CUSTOMER DROP PRIMARY KEY;
+
+
+-- For table REGION
+ALTER TABLE REGION SET READ ONLY;
+
+-- For table NATION
+ALTER TABLE NATION SET READ ONLY;
+
+-- For table PART
+ALTER TABLE PART SET READ ONLY;
+
+-- For table SUPPLIER
+ALTER TABLE SUPPLIER SET READ ONLY;
+
+-- For table PARTSUPP
+ALTER TABLE PARTSUPP SET READ ONLY;
+
+-- For table CUSTOMER
+ALTER TABLE CUSTOMER SET READ ONLY;
+
+-- For table ORDERS
+ALTER TABLE ORDERS SET READ ONLY;
+create ordered index order_idx on orders(o_totalprice);
+
+-- For table LINEITEM
+ALTER TABLE LINEITEM SET READ ONLY;
+
+COMMIT;
