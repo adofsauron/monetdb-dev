@@ -1,0 +1,10 @@
+query IIITIITI nosort
+select * from media
+----
+
+query IT nosort
+select * from media_description
+----
+1
+dummy description
+

@@ -1,0 +1,13 @@
+statement ok
+(c,d):= ("hello","world")
+
+query T rowsort
+io.print(c)
+----
+"hello"
+
+query T rowsort
+io.print(d)
+----
+"world"
+

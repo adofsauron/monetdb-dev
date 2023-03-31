@@ -1,0 +1,67 @@
+iterator01
+iterator02
+iterator03
+clients01
+
+bigsum
+
+inspect00
+#inspect05 word size problems on different platforms
+inspect10
+#inspect40 word size problems on different platforms
+
+register00
+
+mserver00
+
+qgram
+
+groupby00
+
+imprints
+
+call00
+callstring
+callfunction
+
+# flags  is influecend by the Mtest command line 
+
+ascii_io2
+
+mat
+
+remoteInit
+
+partition
+batpartition
+printf
+#some remote related tests
+mapi04
+mapi05
+mapi06
+mapi07
+mapi01
+
+tokenizer00
+
+manifold
+manifoldstr
+#manifoldaggr
+
+# might show different output if openssl is compiled without full sha2
+# support
+clients-hashes
+# shows different output if the password backend is different (or
+# monetdb password has been changed)
+clients-getpasswd
+
+#cpustat too system dependent to always run.
+
+pqueue
+pqueue2
+pqueue3
+
+orderidx00
+orderidx01
+orderidx02
+orderidx04

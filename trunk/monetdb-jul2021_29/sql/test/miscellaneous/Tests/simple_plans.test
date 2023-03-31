@@ -1,0 +1,579 @@
+statement ok
+set optimizer='sequential_pipe'
+
+statement ok
+start transaction
+
+statement ok
+create table myy (col1 int, col2 int)
+
+statement ok
+insert into myy values (1, 1), (2, 0), (3,3), (4,2)
+
+query I rowsort
+select distinct col1 + col2 from myy order by col1 + col2
+----
+2
+6
+
+query T nosort
+plan select distinct col1 + col2 from myy order by col1 + col2
+----
+project (
+| group by (
+| | project (
+| | | table("sys"."myy") [ "myy"."col1", "myy"."col2" ] COUNT 
+| | ) [ "sys"."sql_add"(bigint["myy"."col1"] as "myy"."col1", bigint["myy"."col2"] as "myy"."col2") as "%1"."%1" ]
+| ) [ "%1"."%1" ] [ "%1"."%1" ]
+) [ "%1"."%1" ] [ "%1"."%1" ASC ]
+
+query T nosort
+plan select col2 from myy order by col1 ASC, col1 DESC
+----
+project (
+| table("sys"."myy") [ "myy"."col1", "myy"."col2" ] COUNT 
+) [ "myy"."col2" ] [ "myy"."col1" ASC, "myy"."col1" NULLS LAST ]
+
+query T nosort
+plan select col2 from myy order by col1 DESC, col1 DESC
+----
+project (
+| table("sys"."myy") [ "myy"."col1", "myy"."col2" ] COUNT 
+) [ "myy"."col2" ] [ "myy"."col1" NULLS LAST, "myy"."col1" NULLS LAST ]
+
+statement ok
+create table myx (x uuid, y uuid)
+
+query T nosort
+plan select * from myx where x in ('1aea00e5db6e0810b554fde31d961965') or y = '1aea00e5db6e0810b554fde31d961965'
+----
+project (
+| select (
+| | table("sys"."myx") [ "myx"."x", "myx"."y" ] COUNT 
+| ) [ ("myx"."x" = uuid[char(32) "1aea00e5db6e0810b554fde31d961965"] NOT NULL) or ("myx"."y" = uuid[char(32) "1aea00e5db6e0810b554fde31d961965"] NOT NULL) ]
+) [ "myx"."x", "myx"."y" ]
+
+query T nosort
+plan select * from myx where x in ('1aea00e5db6e0810b554fde31d961965') or y is null
+----
+project (
+| select (
+| | table("sys"."myx") [ "myx"."x", "myx"."y" ] COUNT 
+| ) [ ("myx"."x" = uuid[char(32) "1aea00e5db6e0810b554fde31d961965"] NOT NULL) or ("myx"."y" * = uuid "NULL") ]
+) [ "myx"."x", "myx"."y" ]
+
+query T nosort
+plan select * from myx where x in ('1aea00e5db6e0810b554fde31d961965', '1aea00e5db6e0810b554fde31d961966') or y = '1aea00e5db6e0810b554fde31d961967'
+----
+project (
+| select (
+| | table("sys"."myx") [ "myx"."x", "myx"."y" ] COUNT 
+| ) [ ("myx"."x" in (uuid[char(32) "1aea00e5db6e0810b554fde31d961965"] NOT NULL, uuid[char(32) "1aea00e5db6e0810b554fde31d961966"] NOT NULL)) or ("myx"."y" = uuid[char(32) "1aea00e5db6e0810b554fde31d961967"] NOT NULL) ]
+) [ "myx"."x", "myx"."y" ]
+
+statement ok
+insert into myx values ('1aea00e5db6e0810b554fde31d961965', '1aea00e5db6e0810b554fde31d961967')
+
+query TT rowsort
+select * from myx where x in ('1aea00e5db6e0810b554fde31d961966') or y is not null
+----
+1aea00e5-db6e-0810-b554-fde31d961965
+1aea00e5-db6e-0810-b554-fde31d961967
+
+query TT rowsort
+select * from myx where x in ('1aea00e5db6e0810b554fde31d961966') or y is null
+----
+
+statement ok
+CREATE TABLE tab0(col0 INTEGER, col1 INTEGER, col2 INTEGER)
+
+statement ok
+INSERT INTO tab0 VALUES (97,1,99), (15,81,47),(87,21,10)
+
+query T nosort
+plan select 1 from tab0 where col1 = 1 or col1 = 81
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1" ] COUNT 
+| ) [ "tab0"."col1" in (int "1", int "81") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where col1 = 1 or col1 = 81 or col1 = 100
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1" ] COUNT 
+| ) [ "tab0"."col1" in (int "1", int "81", int "100") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where (col1 = 1 or col1 = 81) or (col2 < 0)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ ("tab0"."col1" in (int "1", int "81")) or ("tab0"."col2" < int "0") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where ((col1 = 1 or col1 = 81) or col1 = 100) or (col2 > 10)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ ("tab0"."col1" in (int "1", int "81", int "100")) or ("tab0"."col2" > int "10") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where ((col1 = 1 or col1 = 81) or col2 = 100) or (col1 = 100)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ (("tab0"."col1" in (int "1", int "81")) or ("tab0"."col2" = int "100")) or ("tab0"."col1" = int "100") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where col1 <> 1 and col1 <> 81
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1" ] COUNT 
+| ) [ "tab0"."col1" notin (int "1", int "81") ]
+) [ tinyint "1" ]
+
+# don't rewrite col2 <> 10 into notin
+query T nosort
+plan select 1 from tab0 where col1 <> 1 and col1 <> 81 and col2 <> 10
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ "tab0"."col2" != int "10", "tab0"."col1" notin (int "1", int "81") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where col1 <> 1 and col1 <> 81 and (col2 < 0)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ "tab0"."col2" < int "0", "tab0"."col1" notin (int "1", int "81") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where (col1 <> 1 and col1 <> 81) or (col2 < 0)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ ("tab0"."col1" notin (int "1", int "81")) or ("tab0"."col2" < int "0") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where ((col1 <> 1 and col1 <> 81) and col1 <> 100) or (col2 > 10)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ ("tab0"."col1" notin (int "1", int "81", int "100")) or ("tab0"."col2" > int "10") ]
+) [ tinyint "1" ]
+
+query T nosort
+plan select 1 from tab0 where ((col1 <> 1 and col1 <> 81) or col2 = 100) and (col1 <> 100)
+----
+project (
+| select (
+| | table("sys"."tab0") [ "tab0"."col1", "tab0"."col2" ] COUNT 
+| ) [ "tab0"."col1" != int "100", ("tab0"."col1" notin (int "1", int "81")) or ("tab0"."col2" = int "100") ]
+) [ tinyint "1" ]
+
+statement ok
+CREATE TABLE tbl_ProductSales (ColID int, Product_Category  varchar(64), Product_Name  varchar(64), TotalSales int)
+
+statement ok
+INSERT INTO tbl_ProductSales VALUES (1,'Game','Mobo Game',200),(2,'Game','PKO Game',400),(3,'Fashion','Shirt',500),(4,'Fashion','Shorts',100)
+
+statement ok
+CREATE TABLE another_T (col1 INT, col2 INT, col3 INT, col4 INT, col5 INT, col6 INT, col7 INT, col8 INT)
+
+statement ok
+INSERT INTO another_T VALUES (1,2,3,4,5,6,7,8), (11,22,33,44,55,66,77,88), (111,222,333,444,555,666,777,888), (1111,2222,3333,4444,5555,6666,7777,8888)
+
+query T python .explain.function_histogram
+EXPLAIN SELECT 1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 BETWEEN t2.col1 AND t2.col1
+----
+algebra.project
+1
+algebra.projection
+3
+algebra.rangejoin
+1
+bat.pack
+5
+querylog.define
+1
+sql.bind
+2
+sql.mvc
+1
+sql.resultSet
+1
+sql.tid
+1
+user.main
+1
+
+query T python .explain.function_histogram
+EXPLAIN SELECT 1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 BETWEEN t2.col1 - 1 AND t2.col1 + 1
+----
+algebra.project
+1
+algebra.projection
+3
+algebra.rangejoin
+1
+bat.pack
+5
+batcalc.lng
+2
+querylog.define
+1
+sql.bind
+2
+sql.mvc
+1
+sql.resultSet
+1
+sql.tid
+1
+user.main
+1
+
+query T python .explain.function_histogram
+EXPLAIN SELECT 1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 BETWEEN t2.col1 AND 2
+----
+algebra.project
+2
+algebra.projection
+3
+algebra.rangejoin
+1
+bat.pack
+5
+querylog.define
+1
+sql.bind
+2
+sql.mvc
+1
+sql.resultSet
+1
+sql.tid
+1
+user.main
+1
+
+query T python .explain.function_histogram
+EXPLAIN SELECT 1 FROM tbl_productsales t1 INNER JOIN tbl_productsales t2 ON t1.product_category LIKE t2.product_category
+----
+algebra.likejoin
+1
+algebra.project
+1
+algebra.projection
+3
+bat.pack
+5
+bat.single
+2
+querylog.define
+1
+sql.bind
+2
+sql.mvc
+1
+sql.resultSet
+1
+sql.tid
+1
+user.main
+1
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t1.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 = t2.col1
+----
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t2.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 = t2.col1
+----
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t1.col1, t2.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 = t2.col1
+----
+algebra.join
+1
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t1.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 > t2.col1
+----
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t2.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 > t2.col1
+----
+
+query T python .explain.function_with_more_than_one_result_bat
+EXPLAIN SELECT t1.col1, t2.col1 FROM another_t t1 INNER JOIN another_t t2 ON t1.col1 > t2.col1
+----
+algebra.thetajoin
+1
+
+query T nosort
+PLAN SELECT 1 FROM another_t WHERE (col1 >= 1 AND col1 <= 2) OR col2 IS NULL
+----
+project (
+| select (
+| | table("sys"."another_t") [ "another_t"."col1", "another_t"."col2" ] COUNT 
+| ) [ (int "1" <= "another_t"."col1" <= int "2" BETWEEN ) or ("another_t"."col2" * = int "NULL") ]
+) [ tinyint "1" ]
+
+query T nosort
+PLAN SELECT 1 FROM another_t WHERE col1 > 1 and cast(col1 as bigint) < 2
+----
+project (
+| select (
+| | table("sys"."another_t") [ "another_t"."col1" ] COUNT 
+| ) [ bigint "1" < bigint["another_t"."col1"] < bigint "2" BETWEEN  ]
+) [ tinyint "1" ]
+
+query T nosort
+PLAN SELECT (col1 >= 1 AND col1 <= 2) OR col2 IS NULL FROM another_t
+----
+project (
+| table("sys"."another_t") [ "another_t"."col1", "another_t"."col2" ] COUNT 
+) [ "sys"."or"(int "1" <= "another_t"."col1" <= int "2" BETWEEN , "sys"."isnull"("another_t"."col2") NOT NULL) ]
+
+statement ok
+CREATE TABLE tabel1 (id_nr INT, dt_sur STRING, edg INT, ede DATE, pc_nml_hur STRING, srt_ukr STRING)
+
+statement ok
+INSERT INTO tabel1 VALUES (10, 'Koning', NULL, current_date - INTERVAL '1' MONTH, '50', '01'), (20, 'Nes', NULL, NULL, '50', '01')
+
+statement ok
+CREATE TABLE tabel2 (id_nr INT, dt_sur STRING, edg INT, ede DATE, pc_nml_hur STRING)
+
+statement ok
+INSERT INTO tabel2 VALUES (10, 'Koning', NULL, current_date - INTERVAL '1' MONTH, '50'), (10, 'Koning', NULL, NULL, '50'), (20, 'Nes', NULL, NULL, '50')
+
+statement ok
+CREATE TABLE tabel3 (id_nr INT, my_date DATE)
+
+statement ok
+INSERT INTO tabel3 VALUES (10, current_date - INTERVAL '1' MONTH), (10, NULL), (20, NULL)
+
+statement ok
+create view view1 as SELECT * FROM tabel1 as a
+
+statement ok
+create view view2 as SELECT * FROM tabel2 as a
+
+statement ok
+create view view3 as SELECT * FROM tabel3 as a
+
+query T nosort
+PLAN SELECT 1 FROM view1 s INNER JOIN view2 h ON s.id_nr = h.id_nr LEFT JOIN view2 h2 ON h.id_nr = h2.id_nr INNER JOIN view3 a ON a.id_nr = s.id_nr
+----
+project (
+| join (
+| | table("sys"."tabel3") [ "tabel3"."id_nr" as "a"."id_nr" ] COUNT ,
+| | project (
+| | | left outer join (
+| | | | join (
+| | | | | project (
+| | | | | | table("sys"."tabel1") [ "tabel1"."id_nr" as "a"."id_nr" ] COUNT 
+| | | | | ) [ "a"."id_nr" as "s"."id_nr" ],
+| | | | | project (
+| | | | | | table("sys"."tabel2") [ "tabel2"."id_nr" as "a"."id_nr" ] COUNT 
+| | | | | ) [ "a"."id_nr" as "h"."id_nr" ]
+| | | | ) [ "s"."id_nr" = "h"."id_nr" ],
+| | | | table("sys"."tabel2") [ "tabel2"."id_nr" as "a"."id_nr" ] COUNT 
+| | | ) [ "h"."id_nr" = "a"."id_nr" ]
+| | ) [ "s"."id_nr" ]
+| ) [ "a"."id_nr" = "s"."id_nr" ]
+) [ tinyint "1" ]
+
+statement ok
+CREATE TABLE integers(i INTEGER, j INTEGER)
+
+statement ok
+INSERT INTO integers VALUES (1,4), (2,5), (3,6), (NULL,NULL)
+
+query T nosort
+plan select i1.i, i2.i from integers i1 inner join integers i2 on i1.i = i2.i or (i1.i is null and i2.i is null)
+----
+project (
+| join (
+| | table("sys"."integers") [ "integers"."i" as "i1"."i" ] COUNT ,
+| | table("sys"."integers") [ "integers"."i" as "i2"."i" ] COUNT 
+| ) [ "i1"."i" * = "i2"."i" ]
+) [ "i1"."i", "i2"."i" ]
+
+query II rowsort
+select i1.i, i2.i from integers i1 inner join integers i2 on i1.i = i2.i or (i1.i is null and i2.i is null)
+----
+1
+1
+2
+2
+3
+3
+NULL
+NULL
+
+query T nosort
+plan select i1.i, i2.i from integers i1 full outer join integers i2 on (i1.i is null and i2.i is null) or i1.i = i2.i
+----
+project (
+| full outer join (
+| | table("sys"."integers") [ "integers"."i" as "i1"."i" ] COUNT ,
+| | table("sys"."integers") [ "integers"."i" as "i2"."i" ] COUNT 
+| ) [ "i1"."i" * = "i2"."i" ]
+) [ "i1"."i", "i2"."i" ]
+
+query II rowsort
+select i1.i, i2.i from integers i1 full outer join integers i2 on (i1.i is null and i2.i is null) or i1.i = i2.i
+----
+1
+1
+2
+2
+3
+3
+NULL
+NULL
+
+query T nosort
+plan select i, j from integers where i = j or (i is null and j is null)
+----
+project (
+| select (
+| | table("sys"."integers") [ "integers"."i", "integers"."j" ] COUNT 
+| ) [ "integers"."i" * = "integers"."j" ]
+) [ "integers"."i", "integers"."j" ]
+
+query II rowsort
+select i, j from integers where i = j or (i is null and j is null)
+----
+NULL
+NULL
+
+# (x*c1)*c2 -> x * (c1*c2)
+query T nosort
+plan select (34*another_t.col1)*3 from another_t
+----
+project (
+| table("sys"."another_t") [ "another_t"."col1" ] COUNT 
+) [ "sys"."sql_mul"("another_t"."col1", "sys"."sql_mul"(tinyint "34", tinyint "3") NOT NULL) ]
+
+# testing rel_push_count_down optimizer
+query T nosort
+plan select count(*) from another_t t1, another_t t2
+----
+project (
+| project (
+| | crossproduct (
+| | |  [ "sys"."cnt"(clob "sys", clob "another_t") NOT NULL as "%2"."%2" ],
+| | |  [ "sys"."cnt"(clob "sys", clob "another_t") NOT NULL as "%3"."%3" ]
+| | ) [  ]
+| ) [ "sys"."sql_mul"("%2"."%2" NOT NULL, "%3"."%3" NOT NULL) NOT NULL as "%1"."%1" ]
+) [ "%1"."%1" NOT NULL ]
+
+statement ok
+create table t1 (a int, b string)
+
+statement ok rowcount 4
+insert into t1 values (1,'a'), (2, 'b'), (3, 'c'), (4, 'd')
+
+statement ok
+create table t2 (a int)
+
+statement ok rowcount 4
+insert into t2 values (1),(2),(3),(4)
+
+statement ok
+create table t3 (b string)
+
+statement ok rowcount 4
+insert into t3 values ('a'),('b'),('c'),('d')
+
+query T nosort
+plan select t1.a, t1.b from t1 inner join t2 on t1.a = t2.a inner join t3 on t1.b like t3.b
+----
+project (
+| join (
+| | join (
+| | | table("sys"."t1") [ "t1"."a", "t1"."b" ] COUNT ,
+| | | table("sys"."t2") [ "t2"."a" ] COUNT 
+| | ) [ "t1"."a" = "t2"."a" ],
+| | table("sys"."t3") [ "t3"."b" ] COUNT 
+| ) [ ("t1"."b") FILTER "like" ("t3"."b", clob "", boolean "false") ]
+) [ "t1"."a", "t1"."b" ]
+
+query T python .explain.function_histogram
+explain select t1.a, t1.b from t1 inner join t2 on t1.a = t2.a inner join t3 on t1.b like t3.b
+----
+algebra.join
+1
+algebra.likejoin
+1
+algebra.projection
+4
+algebra.projectionpath
+2
+bat.pack
+5
+bat.single
+2
+querylog.define
+1
+sql.bind
+4
+sql.mvc
+1
+sql.resultSet
+1
+sql.tid
+3
+user.main
+1
+
+query T nosort
+plan select x, y from (select a as b, a / 3 as c from t1 intersect all select a as z, a / 5 as d from t2) x(x,y) where x > 2
+----
+project (
+| intersect (
+| | project (
+| | | project (
+| | | | select (
+| | | | | table("sys"."t1") [ "t1"."a" ] COUNT 
+| | | | ) [ "t1"."a" > int "2" ]
+| | | ) [ "t1"."a" as "b", "sys"."sql_div"("t1"."a", tinyint "3") as "c" ]
+| | ) [ "b" as "x"."x", "c" as "x"."y" ],
+| | project (
+| | | project (
+| | | | select (
+| | | | | table("sys"."t2") [ "t2"."a" ] COUNT 
+| | | | ) [ "t2"."a" > int "2" ]
+| | | ) [ "t2"."a" as "z", "sys"."sql_div"("t2"."a", tinyint "5") as "d" ]
+| | ) [ "z" as "x"."x", "d" as "x"."y" ]
+| ) [ "x"."x", "x"."y" ]
+) [ "x"."x", "x"."y" ]
+
+statement ok
+rollback
+
+statement ok
+set optimizer='default_pipe'
+

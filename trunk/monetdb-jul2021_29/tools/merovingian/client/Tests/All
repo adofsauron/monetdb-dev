@@ -1,0 +1,2 @@
+NOT_WIN32?monetdb_status
+NOT_WIN32?monetdb_snapshot

@@ -1,0 +1,17 @@
+statement ok
+start transaction
+
+statement ok
+create table rt (x real)
+
+statement ok
+insert into rt values (2.1)
+
+query T rowsort
+select x*x from rt
+----
+4.4099994
+
+statement ok
+rollback
+

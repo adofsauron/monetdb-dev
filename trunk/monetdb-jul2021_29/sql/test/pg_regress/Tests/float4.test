@@ -1,0 +1,448 @@
+statement ok
+CREATE TABLE FLOAT4_TBL (f1  real)
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('    0.0')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('1004.30   ')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('     -34.84    ')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('1.2345678901234e+20')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('1.2345678901234e-20')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('10e40')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('-10e40')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('10e-40')
+
+statement ok
+INSERT INTO FLOAT4_TBL(f1) VALUES ('-10e-40')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('       ')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('xyz')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('5.0.0')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('5 . 0')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('5.   0')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('     - 3.0')
+
+statement error
+INSERT INTO FLOAT4_TBL(f1) VALUES ('123            5')
+
+statement error
+SELECT cast('NaN' as real)
+
+statement error
+SELECT cast('nan' as real)
+
+statement error
+SELECT cast('   NAN  ' as real)
+
+statement error
+SELECT cast('infinity' as real)
+
+statement error
+SELECT cast('          -INFINiTY   ' as real)
+
+statement error
+SELECT cast('N A N' as real)
+
+statement error
+SELECT cast('NaN x' as real)
+
+statement error
+SELECT cast(' INFINITY    x' as real)
+
+statement error
+SELECT cast('Infinity' as real) + 100.0
+
+statement error
+SELECT cast('Infinity' as real) / cast('Infinity' as real)
+
+statement error
+SELECT cast('nan' as real) / cast('nan' as real)
+
+query TT rowsort
+SELECT '' AS five, FLOAT4_TBL.* FROM FLOAT4_TBL
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e+20
+(empty)
+1.2345679e-20
+(empty)
+1004.3
+(empty)
+1e-39
+
+query TT rowsort
+SELECT '' AS four, f.* FROM FLOAT4_TBL f WHERE f.f1 <> '1004.3'
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e+20
+(empty)
+1.2345679e-20
+(empty)
+1e-39
+
+query TT rowsort
+SELECT '' AS one, f.* FROM FLOAT4_TBL f WHERE f.f1 = '1004.3'
+----
+(empty)
+1004.3
+
+query TT rowsort
+SELECT '' AS three, f.* FROM FLOAT4_TBL f WHERE '1004.3' > f.f1
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e-20
+(empty)
+1e-39
+
+query TT rowsort
+SELECT '' AS three, f.* FROM FLOAT4_TBL f WHERE  f.f1 < '1004.3'
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e-20
+(empty)
+1e-39
+
+query TT rowsort
+SELECT '' AS four, f.* FROM FLOAT4_TBL f WHERE '1004.3' >= f.f1
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e-20
+(empty)
+1004.3
+(empty)
+1e-39
+
+query TT rowsort
+SELECT '' AS four, f.* FROM FLOAT4_TBL f WHERE  f.f1 <= '1004.3'
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e-20
+(empty)
+1004.3
+(empty)
+1e-39
+
+query TTT rowsort
+SELECT '' AS three, f.f1, f.f1 * '-10' AS x FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+-1.2345678e+21
+(empty)
+1.2345679e-20
+-1.2345678e-19
+(empty)
+1004.3
+-10043.0
+(empty)
+1e-39
+-1.0000002e-38
+
+query TTT rowsort
+SELECT '' AS three, f.f1, f.f1 + '-10' AS x FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+1.2345679e+20
+(empty)
+1.2345679e-20
+-10.0
+(empty)
+1004.3
+994.3
+(empty)
+1e-39
+-10.0
+
+query TTT rowsort
+SELECT '' AS three, f.f1, f.f1 / '-10' AS x FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+-1.2345679e+19
+(empty)
+1.2345679e-20
+-1.2345679e-21
+(empty)
+1004.3
+-100.43
+(empty)
+1e-39
+-1e-40
+
+query TTT rowsort
+SELECT '' AS three, f.f1, f.f1 - '-10' AS x FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+1.2345679e+20
+(empty)
+1.2345679e-20
+10.0
+(empty)
+1004.3
+1014.3
+(empty)
+1e-39
+10.0
+
+statement error
+SELECT '' AS bad, f.f1 / '0.0' from FLOAT4_TBL f
+
+query TTT rowsort
+SELECT '' AS five, f.f1, abs(f1) AS abs_f1
+   FROM FLOAT4_TBL f
+----
+(empty)
+-1e-39
+1e-39
+(empty)
+-34.84
+34.84
+(empty)
+0.0
+0.0
+(empty)
+1.2345679e+20
+1.2345679e+20
+(empty)
+1.2345679e-20
+1.2345679e-20
+(empty)
+1004.3
+1004.3
+(empty)
+1e-39
+1e-39
+
+statement error
+SELECT '' AS five, f.f1, truncate(f1) AS trunc_f1
+   FROM FLOAT4_TBL f
+
+query TTT rowsort
+SELECT '' AS five, f.f1, round(f.f1, 0) AS round_f1
+   FROM FLOAT4_TBL f
+----
+(empty)
+-1e-39
+-0.0
+(empty)
+-34.84
+-35.0
+(empty)
+0.0
+0.0
+(empty)
+1.2345679e+20
+1.2345679e+20
+(empty)
+1.2345679e-20
+0.0
+(empty)
+1004.3
+1004.0
+(empty)
+1e-39
+0.0
+
+query T rowsort
+select ceil(f1) as ceil_f1 from float4_tbl f
+----
+-0.0
+-34.0
+0.0
+1.0
+1.0
+1.2345679e+20
+1005.0
+
+query T rowsort
+select ceiling(f1) as ceiling_f1 from float4_tbl f
+----
+-0.0
+-34.0
+0.0
+1.0
+1.0
+1.2345679e+20
+1005.0
+
+query T rowsort
+select floor(f1) as floor_f1 from float4_tbl f
+----
+-1.0
+-35.0
+0.0
+0.0
+0.0
+1.2345679e+20
+1004.0
+
+query I rowsort
+select sign(f1) as sign_f1 from float4_tbl f
+----
+-1
+-1
+0
+1
+1
+1
+1
+
+query R rowsort
+SELECT sqrt(cast('64' as double)) AS eight
+----
+8.000
+
+query TTT rowsort
+SELECT '' AS three, f.f1, sqrt(f.f1) AS sqrt_f1
+   FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+11111111000.0
+(empty)
+1.2345679e-20
+1.11111106e-10
+(empty)
+1004.3
+31.690693
+(empty)
+1e-39
+3.162278e-20
+
+query R rowsort
+SELECT power(cast('144' as double), cast('0.5' as double))
+----
+12.000
+
+query TTT rowsort
+SELECT '' AS three, f.f1, exp(ln(f.f1)) AS exp_ln_f1
+   FROM FLOAT4_TBL f
+   WHERE f.f1 > '0.0'
+----
+(empty)
+1.2345679e+20
+1.2345698e+20
+(empty)
+1.2345679e-20
+1.2345683e-20
+(empty)
+1004.3
+1004.29987
+(empty)
+1e-39
+9.99999e-40
+
+query TT rowsort
+SELECT '' AS five, * FROM FLOAT4_TBL
+----
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+(empty)
+1.2345679e+20
+(empty)
+1.2345679e-20
+(empty)
+1004.3
+(empty)
+1e-39
+
+statement error
+SELECT '' AS five, f.f1, @f.f1 AS abs_f1 FROM FLOAT4_TBL f
+
+statement ok
+UPDATE FLOAT4_TBL
+   SET f1 = FLOAT4_TBL.f1 * '-1'
+   WHERE FLOAT4_TBL.f1 > '0.0'
+
+query TT rowsort
+SELECT '' AS five, * FROM FLOAT4_TBL
+----
+(empty)
+-1.2345679e+20
+(empty)
+-1.2345679e-20
+(empty)
+-1004.3
+(empty)
+-1e-39
+(empty)
+-1e-39
+(empty)
+-34.84
+(empty)
+0.0
+
+statement ok
+DROP TABLE FLOAT4_TBL
+

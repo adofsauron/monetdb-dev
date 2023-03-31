@@ -1,0 +1,6 @@
+statement ok
+create schema mydummy
+
+statement ok
+drop schema mydummy
+

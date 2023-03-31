@@ -1,0 +1,36 @@
+statement ok
+start transaction
+
+statement ok
+create table t(a real, b real)
+
+statement ok
+insert into t values (null, 1), (2, 1)
+
+query TT rowsort
+select * from t
+----
+2.0
+1.0
+NULL
+1.0
+
+query T rowsort
+select sum(a) from t
+----
+2.0
+
+query T rowsort
+select sum(a * b) from t
+----
+2.0
+
+query TT rowsort
+select sum(a), sum(a * b) from t
+----
+2.0
+2.0
+
+statement ok
+rollback
+

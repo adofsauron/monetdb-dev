@@ -1,0 +1,12 @@
+statement ok
+function foo();
+X_5:=32;
+X_5:=23;
+io.print(X_5);
+end foo;
+
+query T rowsort
+user.foo();
+----
+23
+

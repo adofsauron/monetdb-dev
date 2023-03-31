@@ -1,0 +1,17 @@
+statement ok
+b := bat.new(:bit)
+
+statement ok
+bat.append(b, 1:bit)
+
+statement ok
+bat.append(b, 0:bit)
+
+query II rowsort
+io.print(b)
+----
+0
+1
+1
+0
+

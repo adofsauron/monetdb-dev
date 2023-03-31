@@ -1,0 +1,124 @@
+statement ok
+start transaction
+
+statement ok
+create sequence seq
+
+statement ok
+create sequence seq1 AS int
+
+statement ok
+create sequence seq2 START WITH 2
+
+statement ok
+create sequence seq3 INCREMENT BY 3
+
+statement ok
+create sequence seq4 MINVALUE 4
+
+statement ok
+create sequence seq5 NO MINVALUE
+
+statement ok
+create sequence seq6 MAXVALUE 6
+
+statement ok
+create sequence seq7 NO MAXVALUE
+
+statement ok
+create sequence seq8 CACHE 8
+
+statement ok
+create sequence seq9 NO CYCLE
+
+statement ok
+create sequence seq0 CYCLE
+
+query TIIIIII rowsort
+select name, start, minvalue, maxvalue, increment, cacheinc, cycle from sequences
+where name in ('seq', 'seq1', 'seq2', 'seq3', 'seq4', 'seq5', 'seq6', 'seq7', 'seq8', 'seq9', 'seq0')
+----
+seq
+1
+0
+0
+1
+1
+0
+seq0
+1
+0
+0
+1
+1
+1
+seq1
+1
+0
+0
+1
+1
+0
+seq2
+2
+0
+0
+1
+1
+0
+seq3
+1
+0
+0
+3
+1
+0
+seq4
+4
+4
+0
+1
+1
+0
+seq5
+1
+0
+0
+1
+1
+0
+seq6
+1
+0
+6
+1
+1
+0
+seq7
+1
+0
+0
+1
+1
+0
+seq8
+1
+0
+0
+1
+8
+0
+seq9
+1
+0
+0
+1
+1
+0
+
+statement ok
+rollback
+
+statement error
+create sequence seq6 MAXVALUE -3
+
