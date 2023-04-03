@@ -45,4 +45,3 @@ EXISTS (
     WHERE
     c.c1 = d.d1
 ) ;
-
