@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd monetdb-jul2021_29
+cd monetdb-11.41.31
 
 mkdir -p build
 cd build
