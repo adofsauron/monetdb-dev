@@ -1,3 +1,5 @@
 #!/bin/bash
 
-monetdbd stop /dbfarm
+# monetdbd stop /dbfarm
+
+pkill mserver

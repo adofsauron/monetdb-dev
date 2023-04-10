@@ -1,6 +1,6 @@
 #!/bin/bash
 
-netstat -anp|grep 50000
+monetdb -p 50000 status -l
 
-monetdb status
+monetdbd get all /dbfarm
 
