@@ -2,8 +2,12 @@
 
 mkdir -p /dbfarm/logs
 
+# https://www.monetdb.org/documentation-Jan2022/admin-guide/manpages/monetdbd/
+
 # monetdbd set logfile=/dbfarm/logs/monetdb.log  /dbfarm
 # monetdbd start /dbfarm 
+
+# https://www.monetdb.org/documentation-Jan2022/admin-guide/manpages/mserver5/
 
 nohup /usr/local/bin/mserver5 \
     --dbpath=/dbfarm/SF-10 \
@@ -18,6 +22,5 @@ nohup /usr/local/bin/mserver5 \
     --set sql_optimizer=default_pipe \
     --debug=2097152 \
     >> /dbfarm/logs/monetdb.log &
-
 
 
