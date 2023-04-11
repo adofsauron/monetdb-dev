@@ -98,6 +98,9 @@ function(monetdb_default_compiler_options)
     endif()
   endif()
 
+  add_compile_options("-O0")
+  add_compile_options("-ggdb3")
+
   if(NOT MSVC)
     add_option_if_available("-Wno-unreachable-code")
   endif()
