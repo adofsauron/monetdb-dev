@@ -41,6 +41,8 @@ insert into d values(2, 'd4');
 
 insert into d values(null, 'd5');
 
+insert into d values(3, 'd4');
+
 
 CREATE TABLE test_order (
  description VARCHAR(255),
