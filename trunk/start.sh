@@ -22,7 +22,7 @@ nohup /usr/local/bin/mserver5 \
     --set gdk_nr_threads=32 \
     --set max_clients=64 \
     --set sql_optimizer=default_pipe \
-    --debug=2097152 \
+    --debug=2101392 \
     >> /dbfarm/logs/monetdb.log &
 
 
