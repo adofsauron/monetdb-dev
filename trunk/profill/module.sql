@@ -1,4 +1,5 @@
 SELECT * FROM sys.malfunctions() WHERE module = 'algebra';
+SELECT * FROM sys.malfunctions() WHERE module = 'algebra' AND address LIKE '%join%' ;
 SELECT * FROM sys.malfunctions() WHERE module = 'Atom types';
 SELECT * FROM sys.malfunctions() WHERE module = 'bat';
 SELECT * FROM sys.malfunctions() WHERE module = 'bbp';
