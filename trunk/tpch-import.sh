@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# https://github.com/MonetDBSolutions/tpch-scripts
+
 cd ../3rd/tpch-scripts
 
 chmod +x ./02_load/*.sh
