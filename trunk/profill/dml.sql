@@ -1,7 +1,7 @@
 
 create table b(b1 int, b2 varchar(2), primary key(b1)) ;
  
-create table a(a1 int, a2 varchar(2), foreign key(a1) references b(b1)) ;
+create table a(a1 int, a2 varchar(2)) ;
  
 create table c(c1 int, c2 varchar(2)) ;
  
