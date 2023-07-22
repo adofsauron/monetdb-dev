@@ -63,7 +63,7 @@ cmake_dependent_option(SHP
   "Enable support for ESRI Shapefiles (default=ON)"
   ON
   "GEOM"
-  OFF)
+  ON)
 
 option(SANITIZER
   "Enable support for the GCC address sanitizer (default=OFF)"
