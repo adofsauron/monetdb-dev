@@ -1,0 +1,33 @@
+statement ok
+create table fine(y int, z int)
+
+statement ok
+start transaction
+
+@connection(id=2, username=monetdb, password=monetdb)
+statement ok
+start transaction
+
+statement ok
+alter table fine drop column y
+
+@connection(id=2)
+statement ok
+create view myv7(a,b) as select y, z from sys.fine
+
+statement ok
+commit
+
+@connection(id=2)
+statement error 40001!COMMIT: transaction is aborted because of concurrency conflicts, will ROLLBACK instead
+commit
+
+@connection(id=2)
+statement error 42S02!SELECT: no such table 'myv7'
+select * from myv7
+----
+
+@connection(id=2)
+statement ok
+drop table fine
+

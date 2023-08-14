@@ -1,0 +1,32 @@
+# Windowing functions tests
+analytics00
+analytics01
+analytics02
+analytics03
+analytics04
+analytics05
+analytics06
+analytics07
+analytics08
+analytics09
+
+# Rollup, Cube tests
+analytics10
+analytics11
+analytics12
+analytics13
+
+# Statistical window function tests
+analytics14
+analytics15
+analytics16
+analytics17
+
+# Other tests
+analytics18
+
+# Avg on integers
+analytics19
+
+# Other tests
+analytics20

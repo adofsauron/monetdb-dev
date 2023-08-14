@@ -1,0 +1,5 @@
+query T nosort
+SELECT xmlelement(name element,xmlattributes ('unnamed and wrong'))
+----
+<element single_value="unnamed and wrong"/>
+

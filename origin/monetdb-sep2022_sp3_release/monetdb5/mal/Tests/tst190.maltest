@@ -1,0 +1,7 @@
+statement error
+function welcome(lim:int):void;
+    i:= 2;
+    w:="hello";
+    return w;
+end welcome
+

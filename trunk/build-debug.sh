@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd monetdb-11.41.31
+cd monetdb-sep2022_sp3_release
 
 mkdir -p build
 cd build

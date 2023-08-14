@@ -1,0 +1,6 @@
+statement ok
+ANALYZE sys
+
+statement ok
+CALL storagemodelinit()
+

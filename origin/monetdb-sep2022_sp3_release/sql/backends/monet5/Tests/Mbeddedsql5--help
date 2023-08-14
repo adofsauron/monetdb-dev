@@ -1,0 +1,3 @@
+#!/bin/sh
+
+Mbeddedsql5 --help

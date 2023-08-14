@@ -1,0 +1,9 @@
+statement ok
+START TRANSACTION
+
+statement ok
+COMMIT
+
+statement error
+COMMIT
+

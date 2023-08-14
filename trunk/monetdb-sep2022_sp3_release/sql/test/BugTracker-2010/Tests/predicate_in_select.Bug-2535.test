@@ -1,0 +1,10 @@
+query I rowsort
+select (select count(*) from sys._tables) > 5
+----
+1
+
+query I rowsort
+select 5 < (select count(*) from sys._tables)
+----
+1
+

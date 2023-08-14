@@ -1,0 +1,10 @@
+query I rowsort
+select false
+----
+0
+
+query I rowsort
+select not true
+----
+0
+

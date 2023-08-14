@@ -1,0 +1,5 @@
+query I rowsort
+select 12*5/3
+----
+20
+

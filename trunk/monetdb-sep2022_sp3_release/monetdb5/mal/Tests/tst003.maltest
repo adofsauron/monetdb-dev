@@ -1,0 +1,6 @@
+statement error
+function foo();
+	a:=b;
+	b:=c;
+end foo
+
