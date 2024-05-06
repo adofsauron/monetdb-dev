@@ -16,7 +16,7 @@ nohup /usr/local/bin/mserver5 \
     --dbtrace=/dbfarm/logs/trace.log \
     --config=/root/.monetdb \
     --set merovingian_uri=mapi:monetdb://localhost.localdomain:50000/mytest \
-    --set mapi_listenaddr=localhost \
+    --set mapi_listenaddr=all \
     --set mapi_usock=/dbfarm/mytest/.mapi.sock \
     --set monet_vault_key=/dbfarm/mytest/.vaultkey \
     --set gdk_nr_threads=32 \
